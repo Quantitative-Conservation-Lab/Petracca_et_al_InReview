@@ -33,11 +33,57 @@ S <- 224 #territories
 #setting up for new.guys array
 newguys <- array(0, dim=c(nSamples,2,proj,S))
 
-####### BASELINE SCENARIO ######
+####### SCENARIO DESCRIPTIONS ######
 
-analysis <- "baseline"
-#scenario 1 : baseline: removal rate at annual mean (0.03718274), immigration as estimated, no harvest, no translocation, no disease
-removal_rate <- 0.03718274
+#analysis <- "baseline"
+#scenario 1 : baseline: removal rate at annual mean (0.03510213), immigration as estimated, no harvest, no translocation, no disease
+#this removal_rate will be included in all scenarios but the one with increased removals
+#removal_rate <- 0.03510213
+
+analysis <- "increase removals"
+# #scenario 2: increase removals such that 30% of population is removed every 4 years
+# #this is an increase to a rate of 0.08530878 each year
+# #1 - (.7 ^ (1/4)) is that calculation
+#this increased removal would start in 2023 (year 4)
+removal_rate <- c(rep(0.03510213, 3), rep(0.08530878,48))
+
+# analysis <- "no immigration"
+# # in this scenario, there is no immigration from out of state
+# # scenario 3: no immigration
+
+# analysis <- "disease"
+# #in this scenario, a certain proportion of wolves is removed in Dec 2022 & June 2023
+# #scenarios 4-9 
+# #scenario 4: 25% loss of population, additive
+# #scenario 5: 25% loss of population, 50% compensatory
+# #scenario 6: 50% loss of population, additive
+# #scenario 7: 50% loss of population, 50% compensatory
+# #scenario 8: 75% loss of population, additive
+# #scenario 9: 75% loss of population, 50% compensatory
+# #set proportion of wolves removed here; can be 0.25, 0.5, 0.75
+# disease_prop <- 0.75
+# #and whether fully additive here
+# additive <- 0.5 #fully additive (0.5 means partly compensatory)
+
+# analysis <- "harvest"
+# #there are four scenarios within harvest, and harvest starts after waiting five years (2025)
+# #scenarios 10-13
+# #scenario 10: 2.5% removal every 6 mo, additive
+# #scenario 11: 2.5% removal every 6 mo, 50% compensatory
+# #scenario 12: 5% removal every 6 mo, additive
+# #scenario 13: 5% removal every 6 mo, 50% compensatory
+# #set harvest level here
+# h <- 0.05
+# #and whether fully additive here
+# additive <- 0.5 #fully additive (0.5 means partly compensatory)
+
+#analysis <- "translocation"
+#site <- "Olympic"
+#site <- "St Helens"
+# #scenarios 14-15: translocation of 8 wolves (2 groups of 4; each w/ 2 class 3 adults and 2 6-mo-olds, from E Wash only)
+# #scenario 14: 8 individuals to sites 10, 14 in the Mt St Helens Elk Herd Area
+# #scenario 15: 8 individuals to sites 125, 145 on the Olympic Peninsula
+# #for now, this is happening in fall 2025
 
 ####### THIS IS WHERE PROJECTION MODEL CODE BEGINS ######
 
@@ -64,6 +110,25 @@ for(sim in 1:nSims){
     phiB.proj[,2,t] <- plogis(rnorm(nSamples, mean=int.surv2[,1], sd = sigma.period)) 
     phiB.proj[,3,t] <- plogis(rnorm(nSamples, mean=int.surv2[,2], sd = sigma.period)) 
   } 
+  
+  if(analysis=="no immigration"){
+    #immigration will turn to 0
+    lambda.immig <- rep(0,nSamples)
+  }
+  
+  if(analysis=="disease"){
+    #disease will take out a certain proportion (25%, 50%, 75%) in Dec 2022 & June 2023
+    phiA.proj[,,c(5:6)] <- phiA.proj[,,c(5:6)] * (1-(disease_prop*additive)) 
+    phiB.proj[,,c(5:6)] <- phiB.proj[,,c(5:6)] * (1-(disease_prop*additive))
+  }
+  
+  if(analysis=="harvest"){
+    # - wait 5 years, then harvest 2.5% in each 6 month period or 5% in each 6 month period
+    # - do a sensitivity analysis where harvest is 50% compensatory, so we would use: 
+    # - survival <- phi*(1-h*0.5)  if (harvest.level==0.025){
+    phiA.proj[,,11:(2*proj-1)] <- phiA.proj[,,11:(2*proj-1)] * (1-(h*additive)) 
+    phiB.proj[,,11:(2*proj-1)] <- phiB.proj[,,11:(2*proj-1)] * (1-(h*additive))
+  }
   
   #####---- STARTING MODEL WITH SECOND PERIOD OF YEAR 1 -----#####
   
@@ -262,6 +327,22 @@ for(sim in 1:nSims){
     
     N.proj[,,1,t+1,EWash] <- n.postremove.EWash
     
+    ##### TRANSLOCATION FUNCTION GOES HERE -----##### 
+    
+    #adjust t to whenever translocation will occur
+    
+    if(analysis=="translocation" && t==5){
+      
+      n.wolves.transl.fxn <- array(NA,dim = c(nSamples,3,224))
+      n.wolves.transl.fxn <- N.proj[,,1,t+1,] #just getting nSamples x 3 x site
+      
+      #call function
+      n.post_translocation <- get.translocations(n.wolves.transl.fxn, EWash, site)
+      
+      N.proj[,1,1,t+1,] <- N.proj[,1,1,t+1,] + n.post_translocation[[1]]
+      N.proj[,3,1,t+1,] <- N.proj[,3,1,t+1,] + n.post_translocation[[2]]
+      
+    }
     ##ATTRACTION FUNCTION HERE
     n.wolves.solo.fxn <- array(NA,dim = c(nSamples,3,224))
 
@@ -439,4 +520,4 @@ save(Lambda.mean,
      Nglobal_state.mean, Nglobal_state_wmove.mean,
      NAdult_state.mean,
      NAdult_EWash.mean, NAdult_NCasc.mean, NAdult_SCasc.mean, Newguys.mean,
-     NSite_state.mean, NSite_EWash.mean, NSite_NCasc.mean, NSite_SCasc.mean, file="1_Baseline_Projection.RData")
+     NSite_state.mean, NSite_EWash.mean, NSite_NCasc.mean, NSite_SCasc.mean, file="4_IncRemovals_Projection.RData")
