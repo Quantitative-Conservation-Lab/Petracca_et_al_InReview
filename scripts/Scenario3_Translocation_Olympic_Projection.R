@@ -17,6 +17,7 @@ load("data/RSF_categorical_territory_selection_information.RData")
 source("functions/movement_function.R")
 source("functions/removals_function.R")
 source("functions/attraction_function.R")
+source("functions/translocation_function.R")
 
 #reading in spatial stuff from projection
 load("data/Spatial_Information.RData")
