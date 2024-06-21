@@ -186,7 +186,7 @@ for(sim in 1:nSims){
     immig_id <- which(N.stayers.proj[i,1,2,1,] + N.stayers.proj[i,2,2,1,] + N.stayers.proj[i,3,2,1,]+
                         new.guys[[1]][i,] + new.guys[[2]][i,] >0)
     #keeps total number of immigrants entering each year same as in data collection period
-    lambda.immig.t <- lambda.immig[i] * (17.6667/length(immig_id))
+    lambda.immig.t <- lambda.immig.mat[1,i] * (17.6667/length(immig_id))
     
     for(s in immig_id){
       
@@ -293,7 +293,7 @@ for(sim in 1:nSims){
       immig_id <- which(N.proj[i,1,1,t+1,] + N.stayers.proj[i,2,1,t+1,] + N.stayers.proj[i,3,1,t+1,] +
                           new.guys[[1]][i,] + new.guys[[2]][i,] >0)
       #keeps total number of immigrants entering each year same as in data collection period
-      lambda.immig.t <- lambda.immig[i] * (17.6667/length(immig_id))
+      lambda.immig.t <- lambda.immig.mat[t+1,i] * (17.6667/length(immig_id))
       
       for(s in immig_id){
         Tot.immig.proj[i,1,t+1,s] <- rpois(1, lambda.immig.t) #no .proj bc taken from data model
@@ -421,7 +421,7 @@ for(sim in 1:nSims){
       immig_id <- which(N.stayers.proj[i,1,2,t+1,] + N.stayers.proj[i,2,2,t+1,] + N.stayers.proj[i,3,2,t+1,]+
                           new.guys[[1]][i,] + new.guys[[2]][i,] >0)
       #keeps total number of immigrants entering each year same as in data collection period
-      lambda.immig.t <- lambda.immig[i] * (17.6667/length(immig_id))
+      lambda.immig.t <- lambda.immig.mat[t+1,i] * (17.6667/length(immig_id))
       
       for(s in immig_id){
         Tot.immig.proj[i,2,t+1,s] <- rpois(1, lambda.immig.t) #no .proj bc taken from data model
