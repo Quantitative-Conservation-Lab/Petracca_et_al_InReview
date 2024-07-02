@@ -12,25 +12,22 @@ memory.limit(5000000000)
 nSims <- 100 
 nSamples <- 500
 
-setwd("G:/My Drive/GitHub/Wolves/")
-
-file_names=as.list(dir(path="Outputs/a_composite_model/Scenarios/model_oct31_RSF",
+getwd()
+file_names=as.list(dir(path=getwd(),
                        pattern=".RData", full.names=T))
-file_names <- file_names[c(1,4,5,6,9,7,8,
-                           10,11,12,2,3)]
-labs <- c(
-  `V1` = "Baseline",
-  `V2` = "Transl MSH",
-  `V3` = "Transl Olympic",
-  `V4` = "Immig 50%",
-  `V5` = "No immig",
-  `V6` = "Increase Removals",
-  `V7` = "Inc Removals E Wash",
-  `V8` = "Disease 25%",
-  `V9` = "Disease 50%",
-  `V10` = "Disease 75%",
-  `V11` = "Harvest 2.5%",
-  `V12` = "Harvest 5%")
+#file_names <- file_names[11]
+
+file_names <- file_names[c(1,5,6,7,8,9,10,11,12,2,3,4)]
+
+#file_names <- file_names[c(1,4,5,2,8,7,6,3)]
+
+#for sarah's figures
+#file_names <- file_names[c(1:3,8,11,12,15)]
+
+#for main ms figures
+#file_names <- file_names[1]
+
+
 #reading in all scenario output into a scenarios list LOADING ONLY ONCE
 scenarios <- list()
 wolf_RR <- list()
@@ -49,212 +46,6 @@ for(i in 1:length(file_names)){
                                NAdult_EWash.mean, NAdult_NCasc.mean, NAdult_SCasc.mean)
 }
 
-#ONE BY ONE
-# scenarios <- list()
-# for(i in 1:length(file_names)){
-#   load(file_names[[i]])
-#   scenarios[[i]] <- list(Ntot.site_mean, Ntot.site_median, Nglobal_state_wmove.mean,
-#                          Newguys.mean, Lambda.mean, BP_Presence_summary, Pack_Size_max, Two_Adult_summary,
-#                          NSite_state.mean)
-# }
-# 
-# wolf_RR <- list()
-# for(i in 1:length(file_names)){
-#   load(file_names[[i]])
-#   wolf_RR[[i]] <- list(NAdult_EWash.mean, NAdult_NCasc.mean, NAdult_SCasc.mean,
-#                        NSite_EWash.mean, NSite_NCasc.mean, NSite_SCasc.mean)
-# }
-# 
-# scenarios_recov <- list()
-# for(i in 1:length(file_names)){
-#   load(file_names[[i]])
-#   scenarios_recov[[i]] <- list(NSite_state.mean, NSite_EWash.mean, NSite_NCasc.mean, NSite_SCasc.mean)
-# }
-# 
-# scenarios_quasi <- list()
-# for(i in 1:length(file_names)){
-#   load(file_names[[i]])
-#   scenarios_quasi[[i]] <- list(NAdult_state.mean, 
-#                                NAdult_EWash.mean, NAdult_NCasc.mean, NAdult_SCasc.mean)
-# }
-
-###### LETS GET PROB 2+ AD BY SITE ######
-
-dim(scenarios[[1]][[1]])
-#extracting rows for years 1,10,20,30...
-#array N_bysite has six rows, 224 sites, 15 scenarios
-Prob_TwoAd_bysite <- array(NA, dim=c(6,224,length(file_names)))
-
-for(i in 1:length(file_names)){
-  Prob_TwoAd_bysite[,,i] <- scenarios[[i]][[8]][c(1,10,20,30,40,50),]
-}
-
-#make it 224x6x15
-Prob_TwoAd_bysite <- aperm(Prob_TwoAd_bysite, c(2,1,3))
-dim(Prob_TwoAd_bysite)
-Prob_TwoAd_bysite[196,2,1]
-
-WA <- st_read("G:/My Drive/Data/Data/GIS/washington_UTM_mainland.shp")
-areas <- st_read("G:/My Drive/Data/Data/GIS/RecoveryRegions/WolfRecoveryZones.shp")
-areas_UTM <- st_transform(areas, crs=32610)
-areas_UTM <- st_make_valid(areas_UTM)
-st_is_valid(areas_UTM)
-packs <- st_read("G:/My Drive/GitHub/Wolves/Outputs/spatial_model/territory_polygons.shp")
-st_crs(packs) <- 32610
-
-dim(Prob_TwoAd_bysite)
-# packs[,7:12] <- Prob_TwoAd_bysite[,,i]
-# packs[,7:12] <- Prob_TwoAd_bysite[,2,1]
-test <- list()
-# test <- ggplot() +
-#   geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-#   geom_sf(data = packs, aes(fill=V7)) +
-#   theme_bw()+
-#   scale_fill_viridis(discrete=F,name="Probability of 2+ Adults")#+
-#   #theme(legend.position="none")
-
-for(i in 1:length(file_names)){
-  packs[,7:12] <- Prob_TwoAd_bysite[,,i]
-  test <- list()
-  test[[1]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V7)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  #guides(fill=guide_legend(title="Recovery Regions",nrow=2,byrow=TRUE))
-  test[[2]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V8)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  test[[3]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V9)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  test[[4]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V10)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  test[[5]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V11)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  test[[6]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=V12)) +
-    theme_bw()+
-    scale_fill_gradient(low = "white", high = "black", breaks=seq(0,1,by=0.25),
-                        name="Probability of 2+ adults")+
-    theme(legend.position="none")
-  
-  library(ggpubr)
-  ggpubr::ggarrange(test[[1]], test[[2]], test[[3]],
-                    test[[4]], test[[5]], test[[6]],# list of plots
-                    labels = c("Year 1", "Year 10", "Year 20",
-                               "Year 30", "Year 40", "Year 50"), # labels
-                    common.legend = T, # COMMON LEGEND
-                    font.label=list(color="black",size=20),
-                    legend = "bottom")
-  ggsave(paste0("Outputs/a_composite_model/Scenarios/Figures/Prob_TwoAd_bysite_",i,".jpg"))
-}
-
-##### LETS TRY A THING WITH DISCRETE PROBABILITY #####
-
-dim(Prob_TwoAd_bysite)
-Prob_TwoAd_bysite_copy <- Prob_TwoAd_bysite
-
-Prob_TwoAd_bysite_copy[which(Prob_TwoAd_bysite_copy<0.5)] <- 0
-Prob_TwoAd_bysite_copy[which(Prob_TwoAd_bysite_copy>=0.5)] <- 1
-
-tail(Prob_TwoAd_bysite_copy[,,15])
-tail(Prob_TwoAd_bysite[,,15])
-
-#packs[,7:12] <- Prob_TwoAd_bysite_copy[,2,1]
-# test <- list()
-# test <- ggplot() +
-#   geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-#   geom_sf(data = packs, aes(fill=V7)) +
-#   theme_bw()+
-#   scale_fill_viridis(discrete=F,name=">50% Probability of 2+ Adults")
-#   #theme(legend.position="none")
-
-for(i in 1:length(file_names)){
-  packs[,7:12] <- Prob_TwoAd_bysite_copy[,,i]
-  test <- list()
-  test[[1]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V7))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"), 
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+     
-    theme(legend.position="none")
-  #guides(fill=guide_legend(title="Recovery Regions",nrow=2,byrow=TRUE))
-  test[[2]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V8))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"), 
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+    
-    theme(legend.position="none")    
-  test[[3]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V9))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"), 
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+   
-    theme(legend.position="none")
-  test[[4]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V10))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"), 
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+     
-    theme(legend.position="none")
-  test[[5]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V11))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"), 
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+     
-    theme(legend.position="none")
-  test[[6]] <- ggplot() +
-    geom_sf(data = WA, col = 'black', fill = NA, lwd = 1) +
-    geom_sf(data = packs, aes(fill=as.factor(V12))) +
-    theme_bw()+
-    scale_fill_manual(values = c("white", "black"),
-                      labels = c("no", "yes"),
-                      name=">50% Probability of 2+ Adults")+    
-    theme(legend.position="none")
-  
-  library(ggpubr)
-  ggpubr::ggarrange(test[[1]], test[[2]], test[[3]],
-                    test[[4]], test[[5]], test[[6]],# list of plots
-                    labels = c("Year 1", "Year 10", "Year 20",
-                               "Year 30", "Year 40", "Year 50"), # labels
-                    common.legend = T, # COMMON LEGEND
-                    font.label=list(color="black",size=20),
-                    legend = "bottom") 
-  ggsave(paste0("Outputs/a_composite_model/Scenarios/Figures/paper/Prob_TwoAd_bysite_50perc_Scenario",i,".pdf"))
-}
-
 ###### LETS MOVE ON TO PROB OF RECOVERY ######
 
 dim(scenarios_recov[[1]][[1]])
@@ -264,102 +55,52 @@ p.recovery <- matrix(NA, nrow=nSamples, ncol=length(file_names))
 for(i in 1:length(file_names)){
   for(j in 1:nSamples){
     p.recovery[j,i] <- mean((scenarios_recov[[i]][[1]][j,,]>=15 &
-                               scenarios_recov[[i]][[2]][j,,]>=4 &
-                               scenarios_recov[[i]][[3]][j,,]>=4 &
-                               scenarios_recov[[i]][[4]][j,,]>=4)>=1)
+                       scenarios_recov[[i]][[2]][j,,]>=4 &
+                       scenarios_recov[[i]][[3]][j,,]>=4 &
+                       scenarios_recov[[i]][[4]][j,,]>=4)>=1)
   }}
 
 p.recovery <- as.data.frame(p.recovery)
 
 p.recovery <- p.recovery %>% #N_sadimmig.mean NAdult_state.mean
-  melt(value.name = 'total')# %>%
-# dplyr::rename(sample = Var1, year = Var2,
-#               sim= Var3) %>%
-# group_by(sample, year) %>% summarize(mean_N = mean(total))
-
-# p.recovery.summary <- apply(p.recovery, 2, quantile, probs = c(0.025, 0.5, 0.975))
-
-#p.recovery.summary <- as.data.frame(t(p.recovery.summary))
-#colnames(p.recovery.summary) <- c("lower", "median", "upper")
-# labs <- c("Baseline", "Inc remove", "No immig", "Disease", 
-#           "Harvest 2.5 C", "Harvest 5% A",
-#     
+  melt(value.name = 'total')
 
 #reordering for this one only
 labs <- c(
   `V1` = "Baseline",
-  `V2` = "Transl MSH",
-  `V3` = "Transl Olympic",
+  `V2` = "Translocation MSH",
+  `V3` = "Translocation Olympic",
   `V4` = "Inc removals",
-  `V5` = "Harvest 2.5% C",
-  `V6` = "Harvest 2.5% A",
-  `V7` = "Harvest 5% C",
-  `V8`= "Harvest 5% A",
-  `V9` = "No immig",
-  `V10` = "Disease 25% C",
-  `V11` = "Disease 25% A",
-  `V12` = "Disease 50% C",
-  `V13` = "Harvest 50% A",
-  `V14` = "Harvest 75% C",
-  `V15`= "Harvest 75% A")
+  `V5` = "Inc removals E Wash",
+  `V6` = "Harvest 2.5%",
+  `V7` = "Harvest 5%",
+  `V8` = "50% immigration",
+  `V9` = "No immigration",
+  `V10` = "Disease 25%",
+  `V11` = "Disease 50%",
+  `V12` = "Disease 75%")
 
-p.recovery$variable <- factor(p.recovery$variable, 
-                              levels = c("V1", "V2", "V5", 
-                                         "V4", "V3", "V6", "V7"))
+head(p.recovery)
+unique(p.recovery$variable)
+p.recovery$variable <- factor(p.recovery$variable)
 
 ggplot() + 
   #geom_errorbar(data=p.recovery, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
   geom_boxplot(data=p.recovery, mapping=aes(x=variable, y=total)) +
   xlab("Scenario") + ylab("Probability of plan recovery \nacross all years (2021-2070)")+
   scale_x_discrete(labels = labs)+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS1.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS1.jpg")
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+ggsave("figures/appendix/Figure1_new.jpg", width = 5, height = 3.5, units="in")
 
 #####----- PROB OF RECOVERY FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
 
-#getting only certain years and scenarios
-
-head(p.recovery)
-
-# p.recovery_paper <- p.recovery %>% filter(variable == "V1" | variable =="V2" |variable =="V3" |
-#                                     variable =="V8" |variable =="V12" |variable =="V14") 
-#changing levels for scenarios
-#3 first, then 12, 8, 2, 14, 1
-p.recovery_paper$variable <- factor(p.recovery_paper$variable, 
-                                    levels = c("V1", "V14", "V2", 
-                                               "V8", "V12", "V3"))
-labs <- c(
-  `V1` = "Baseline",
-  `V14` = "Translocation MSH",
-  `V2` = "Increase removals",
-  `V8` = "Disease",
-  `V12` = "Harvest",
-  `V3` = "No immigration")
-
-ggplot() + 
-  #geom_errorbar(data=p.recovery, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
-  geom_boxplot(data=p.recovery, mapping=aes(x=variable, y=total)) +
-  xlab("Scenario") + ylab("Prob of plan recovery at any point in 50 yrs")+
-  scale_x_discrete(labels = labs)+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/Paper_Prob_recovery_anypt_50yrs.jpg")
-
-#getting quantile of lambda
-head(p.recovery_paper)
+#getting quantiles
 p.recovery_paper_summary <- p.recovery %>% group_by(variable) %>%  drop_na(total) %>% 
   summarise(quantile(total, probs=c(0.025, 0.5, 0.975))) 
 #getting mean, not median
 print(p.recovery_paper_summary, n=30)
 
 ###### LETS MOVE ONTO TIME TO PLAN RECOVERY ######
-
-
-# #prob of recovering at any point in 100 years
-# p.recovery[sim] <- mean((NSite_state.proj[,1:proj]>=15 &
-#                            NSite_EWash.proj[,1:proj]>=4 &
-#                            NSite_NCasc.proj[,1:proj]>=4 &
-#                            NSite_SCasc.proj[,1:proj]>=4)>=1)
 
 dim(scenarios_recov[[1]][[1]])
 
@@ -369,9 +110,9 @@ for(i in 1:length(file_names)){
   for(j in 1:nSamples){
     for(k in 1:51){
       p.recovery.time[j,k,i] <- mean((scenarios_recov[[i]][[1]][j,k,]>=15 &
-                                        scenarios_recov[[i]][[2]][j,k,]>=4 &
-                                        scenarios_recov[[i]][[3]][j,k,]>=4 &
-                                        scenarios_recov[[i]][[4]][j,k,]>=4)>=1)
+                               scenarios_recov[[i]][[2]][j,k,]>=4 &
+                               scenarios_recov[[i]][[3]][j,k,]>=4 &
+                               scenarios_recov[[i]][[4]][j,k,]>=4)>=1)
     }}}
 
 dim(p.recovery.time)
@@ -385,29 +126,13 @@ p.recovery.time_summary$year <- rep(1:51,times=length(file_names))
 p.recovery.time <- p.recovery.time_summary %>% #N_sadimmig.mean NAdult_state.mean
   melt(id=c("scenario", "year"), value.name = 'total') #%>%
 
-
-p.recovery.20 <- subset(p.recovery.time,  year<=20)
-head(p.recovery.20)
-
-ggplot() + 
-  geom_boxplot(data=p.recovery.20, mapping=aes(x=as.factor(year), y=total)) +
-  xlab("Year") + ylab("Probability of meeting plan recovery")+
-  facet_wrap(.~as.factor(scenario), labeller = as_labeller(panel_names))
-
-
-
-ggsave("Outputs/a_composite_model/Scenarios/Figures/TimePlanRecovery.jpg")
-
 #####----- TIME TO PLAN RECOVERY FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
 
 #getting only certain years and scenarios
-
-head(p.recovery.time)
-tail(p.recovery.time)
-unique(p.recovery.time$scenario)
-
-#getting only certain years and scenarios
 p.recovery.time_paper <- p.recovery.time %>% filter(year==11 | year==21 | year==31 | year==41 | year==51)
+
+#changing levels for scenarios
+p.recovery.time_paper$scenario <- factor(p.recovery.time_paper$scenario)
 
 library(MetBrewer)
 
@@ -415,18 +140,15 @@ ggplot(p.recovery.time_paper, aes(x=as.factor(year), y=total, fill=as.factor(sce
   geom_boxplot() +
   ylab("Probability of meeting plan recovery")+
   scale_fill_manual(name = "Scenario", 
-                    labels = c("Baseline", "Transl MSH", "Transl Olympic", "Immig 50%",
-                               "No Immig", "Inc Removals", "Inc Removals E WA",
-                               "Disease 25%","Disease 50%","Disease 75%", 
-                               "Harvest 2.5%", "Harvest 5%"),                    
+                    labels = c("Baseline", "Translocation MSH", "Translocation Olympic", "Inc removals", "Inc removals E Wash", "Harvest 2.5%", "Harvest 5%", "50% immigration", "No immigration", "Disease 25%", "Disease 50%", "Disease 75%"),
                     values=met.brewer("Signac", 12))+
   scale_x_discrete(name = "Year", labels=c("11" = "2030", "21" = "2040","31" = "2050",
                                            "41" = "2060","51" = "2070"))+
   theme(legend.position="bottom")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS2.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS2.jpg")
+ggsave("figures/appendix/Figure2_new.jpg", width = 8, height = 5, units="in")
 
-#getting quantile of lambda
+
+#getting quantiles
 head(p.recovery.time_paper)
 p.recovery.time_paper_summary <- p.recovery.time_paper %>% group_by(scenario,year) %>%  drop_na(total) %>% 
   summarise(mean(total)) 
@@ -434,11 +156,6 @@ p.recovery.time_paper_summary <- p.recovery.time_paper %>% group_by(scenario,yea
 print(p.recovery.time_paper_summary, n=150)
 
 ###### LETS MOVE ON TO PROB OF QUASI-EXTINCTION ######
-
-# p.quasiext[sim] <- mean((NAdult_state.proj[,1:proj]<92 &
-#                            NAdult_EWash.proj[,1:proj]<24 &
-#                            NAdult_NCasc.proj[,1:proj]<24 &
-#                            NAdult_SCasc.proj[,1:proj]<24)>=1)
 
 dim(scenarios_quasi[[1]][[1]])
 
@@ -457,42 +174,21 @@ p.quasi <- as.data.frame(p.quasi)
 p.quasi <- p.quasi %>% #N_sadimmig.mean NAdult_state.mean
   melt(value.name = 'total')
 
-
-ggplot() + 
-  #geom_errorbar(data=p.quasi.summary, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
-  geom_boxplot(data=p.quasi, mapping=aes(x=variable, y=total)) +
-  xlab("Scenario") + ylab("Prob of quasi-extinction \nacross all years (2021-2070)")+
-  scale_x_discrete(labels = labs)+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS4.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS4.jpg")
-
-
 #####----- PROB OF QUASIEXT FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
 
 #getting only certain years and scenarios
 
-head(p.quasi)
-
-p.quasi_paper <- p.quasi %>% filter(variable == "V1" | variable =="V2" |variable =="V3" |
-                                      variable =="V8" |variable =="V12" |variable =="V14") 
-#changing levels for scenarios
-#3 first, then 12, 8, 2, 14, 1
-p.quasi$variable <- factor(p.quasi$variable, 
-                           levels = c("V1", "V2", "V4", 
-                                      "V5", "V7", "V3",
-                                      "V6"))
-
+p.quasi$variable <- factor(p.quasi$variable)
 ggplot() + 
   #geom_errorbar(data=p.recovery, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
   geom_boxplot(data=p.quasi, mapping=aes(x=variable, y=total)) +
-  xlab("Scenario") + ylab("Probability of quasi-extinction \nat any point in next 50 years")+
+  xlab("Scenario") + ylab("Probability of quasi-extinction \nacross all years (2021-2070)")+
   scale_x_discrete(labels = labs)+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Paper_ProbQuasiExtinction_paper_Oct31.jpg")
+ggsave("figures/appendix/Figure4_new.jpg", width = 5, height = 3.5, units="in")
 
-#getting quantile of lambda
+
+#getting quantiles
 head(p.quasi_paper)
 p.quasi_paper_summary <- p.quasi %>% group_by(variable) %>%  drop_na(total) %>% 
   summarise(quantile(total, probs=c(0.025, 0.5, 0.975))) 
@@ -500,11 +196,6 @@ p.quasi_paper_summary <- p.quasi %>% group_by(variable) %>%  drop_na(total) %>%
 print(p.quasi_paper_summary, n=30)
 
 ###### LETS MOVE ON TO PROB OF EXTINCTION ######
-
-# p.quasiext[sim] <- mean((NAdult_state.proj[,1:proj]<92 &
-#                            NAdult_EWash.proj[,1:proj]<24 &
-#                            NAdult_NCasc.proj[,1:proj]<24 &
-#                            NAdult_SCasc.proj[,1:proj]<24)>=1)
 
 dim(scenarios_quasi[[1]][[1]])
 
@@ -525,49 +216,19 @@ p.ext <- p.ext %>% #N_sadimmig.mean NAdult_state.mean
 
 #colnames(p.ext) <- c("lower", "median", "upper")
 #keep same as quasi
-p.ext$variable <- factor(p.ext$variable, 
-                         levels = c("V1", "V2", "V4", 
-                                    "V5", "V7", "V3",
-                                    "V6"))
-ggplot() + 
-  #geom_errorbar(data=p.ext.summary, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
-  geom_boxplot(data=p.ext, mapping=aes(x=variable, y=total)) +
-  xlab("Scenario") + ylab("Probability of extinction in 2070")+
-  scale_x_discrete(labels = labs)+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS5.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS5.jpg")
-
-#####----- PROB OF EXTINCTION FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
-
-#getting only certain years and scenarios
-
 head(p.ext)
-
-p.ext_paper <- p.ext %>% filter(variable == "V1" | variable =="V2" |variable =="V3" |
-                                  variable =="V8" |variable =="V12" |variable =="V14") 
-#changing levels for scenarios
-#3 first, then 12, 8, 2, 14, 1
-p.ext_paper$variable <- factor(p.ext_paper$variable, 
-                               levels = c("V1", "V14", "V2", 
-                                          "V8", "V12", "V3"))
-labs <- c(
-  `V1` = "Baseline",
-  `V14` = "Translocation MSH",
-  `V2` = "Increase removals",
-  `V8` = "Disease",
-  `V12` = "Harvest",
-  `V3` = "No immigration")
+unique(p.ext$variable)
+p.ext$variable <- factor(p.ext$variable)
 
 ggplot() + 
   #geom_errorbar(data=p.recovery, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
   geom_boxplot(data=p.ext, mapping=aes(x=variable, y=total)) +
-  xlab("Scenario") + ylab("Probability of extinction at Yr 50")+
+  xlab("Scenario") + ylab("Probability of extinction in 2070")+
   scale_x_discrete(labels = labs)+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/Paper_ProbExtinction.jpg")
+ggsave("figures/appendix/Figure5_new.jpg", width = 5, height = 3.5, units="in")
 
-#getting quantile of lambda
+#getting quantiles
 head(p.ext_paper)
 p.ext_paper_summary <- p.ext %>% group_by(variable) %>%  drop_na(total) %>% 
   summarise(quantile(total, probs=c(0.025, 0.5, 0.975))) 
@@ -589,85 +250,37 @@ dim(lambda)
 lambda_mean <- array(NA, dim=c(500,length(file_names)))
 for(i in 1:length(file_names)){
   for(j in 1:nSamples){
-    lambda_mean[j,i] <- prod(lambda[j,1:50,i]) ^(1/50) }}
-
-
-#lambdaext <- apply(scenarios[[1]][[5]], 2, mean)
-
-# for(i in 1:length(file_names)){
-#   for(j in 1:49){
-#     lambda[j,i] <- mean(scenarios[[i]][[5]][,j,i], na.rm=T)
-#   }}
+  lambda_mean[j,i] <- prod(lambda[j,1:50,i]) ^(1/50) }}
 
 lambda <- as.data.frame(lambda_mean)
 
 lambda <- lambda %>% #N_sadimmig.mean NAdult_state.mean
   melt(value.name = 'total')
-
-#colnames(p.ext) <- c("lower", "median", "upper")
-
-labs <- c(
-  `V1` = "Baseline",
-  `V2` = "Translocation",
-  `V3` = "Disease 75%",
-  `V4` = "Inc removals",
-  `V5` = "Harvest 2.5% C",
-  `V6` = "No immigration",
-  `V7`= "Harvest 5% A")
+lambda$variable <- factor(lambda$variable)
+head(lambda)
+unique(lambda$variable)
 
 ggplot(data=lambda, mapping=aes(x=variable, y=total)) + 
   #geom_errorbar(data=p.ext.summary, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
   geom_violin() +
   stat_summary(fun="median", geom="point")+
   xlab("Scenario") + ylab("Geometric mean of lambda")+
-  scale_x_discrete(labels = labs)+ ylim(0.8,1.2)+
+  scale_x_discrete(labels = labs)+ ylim(0.8,1.15)+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS3.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS3.jpg")
+ggsave("figures/appendix/Figure3_new.jpg", width = 5, height = 3.5, units="in")
+
 
 #####----- LAMBDA FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
 
 #getting only certain years and scenarios
 
-head(lambda)
-
-lambda_paper <- lambda %>% filter(variable == "V1" | variable =="V2" |variable =="V3" |
-                                    variable =="V8" |variable =="V12" |variable =="V14") 
-#changing levels for scenarios
-#3 first, then 12, 8, 2, 14, 1
-lambda_paper$variable <- factor(lambda_paper$variable, 
-                                levels = c("V1", "V14", "V2", 
-                                           "V8", "V12", "V3"))
-labs <- c(
-  `V1` = "Baseline",
-  `V14` = "Translocation MSH",
-  `V2` = "Increase removals",
-  `V8` = "Disease",
-  `V12` = "Harvest",
-  `V3` = "No immigration")
-
-ggplot(data=lambda, mapping=aes(x=variable, y=total)) + 
-  #geom_errorbar(data=p.ext.summary, mapping=aes(x=as.factor(1:15), ymin=lower, ymax=upper), width=0.2, size=1, color="black") + 
-  geom_violin() +
-  stat_summary(fun="median", geom="point")+
-  xlab("Scenario") + ylab("Geometric mean of lambda")+
-  scale_x_discrete(labels = labs)+ ylim(0.8,1.2)+
-  # theme(axis.text.x = element_text(vjust = grid::unit(c(-2, 0), "points")))
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggsave("Outputs/a_composite_model/Scenarios/Figures/Paper_Geometric_mean_lambda.jpg")
-
-
 #getting quantile of lambda
-head(lambda_paper)
 lambda_paper_summary <- lambda %>% group_by(variable) %>%  drop_na(total) %>% 
   summarise(quantile(total, probs=c(0.025, 0.5, 0.975))) 
-#getting mean, not median
-lambda_paper_summary <- lambda %>% group_by(variable) %>%  drop_na(total) %>% 
-  filter(variable == "V1" | variable == "V3") %>% summarise(mean(total)) 
-print(lambda_paper_summary,n=21)
-
+print(lambda_paper_summary,n=24)
 
 ###### LETS MOVE ON TO NUMBER TOTAL WOLVES ######
+
 dim(scenarios[[1]][[3]])
 NWolves_Total <- array(NA, dim=c(500,51,100,length(file_names)))
 
@@ -675,10 +288,6 @@ NWolves_Total <- array(NA, dim=c(500,51,100,length(file_names)))
 for(i in 1:length(file_names)){
   NWolves_Total[,,,i] <- scenarios[[i]][[3]]
 }
-#dim(NWolves_Total_summary)
-# NWolves_Total_summary <- apply(NWolves_Total, c(2,4), 
-#                                quantile, probs = c(0.25, 0.5, 0.75),  na.rm = TRUE)
-# #test <- NWolves_Total_summary[2,c(1,50),1]
 
 dim(NWolves_Total)
 NWolves_Total_summary <- aperm(NWolves_Total, c(2,4,1,3))
@@ -696,114 +305,41 @@ NWolves <- NWolves_Total_summary_2d %>% #N_sadimmig.mean NAdult_state.mean
   melt(id=c("scenario", "year"), value.name = 'total') #%>%
 #group_by(sample, year) %>% summarize(mean_N = mean(total))
 
-# 
-# NWolves_Total_summary <- aperm(NWolves_Total_summary, c(2,3,1))
-# #dim(NWolves_Total_summary)   
-# 
-# dim(NWolves_Total_summary)
-
-# NWolves_Total_summary_2d <- matrix(NWolves_Total_summary, 50*length(file_names), 3)
-# NWolves_Total_summary_2d <- as.data.frame(NWolves_Total_summary_2d)
-# 
-# NWolves_Total_summary_2d$scenario <- rep(1:length(file_names),each=50)
-# NWolves_Total_summary_2d$year <- rep(1:50,times=length(file_names))
-# 
-# colnames(NWolves_Total_summary_2d)[1:3] <- c("lower", "median", "upper")
-
-panel_names <- c(
-  `1` = "Baseline",
-  `2` = "Inc remove",
-  `3` = "No immig",
-  `4` = "Disease 25 A",  
-  `5` = "Disease 25 C",
-  `6` = "Disease 50 A",
-  `7` = "Disease 50 C",
-  `8` = "Disease 75 A",
-  `9` = "Disease 75 C",
-  `10` = "Harvest 5 A",
-  `11` = "Harvest 5 C",
-  `12` = "Harvest 10 A",
-  `13` = "Harvest 10 C",
-  `14` = "Tran St H",
-  `15` = "Tran Olympic")
-
-scenario1 <- subset(NWolves, scenario==1)
-
-ggplot() + 
-  #geom_errorbar(data=NWolves_Total_summary_2d, mapping=aes(x=year, ymin=lower, ymax=upper), width=0.1, size=.5) + 
-  geom_boxplot(data=NWolves, mapping=aes(x=as.factor(year), y=total)) +
-  xlab("Year") + ylab("Number of wolves")+
-  facet_wrap(.~as.factor(scenario)) #labeller = as_labeller(panel_names))#+
-
-ggsave("Outputs/a_composite_model/Scenarios/Figures/Number_of_Wolves_Baseline.jpg")
-
-scenario1 <- subset(NWolves, scenario==3)
-
-ggplot() + 
-  #geom_errorbar(data=NWolves_Total_summary_2d, mapping=aes(x=year, ymin=lower, ymax=upper), width=0.1, size=.5) + 
-  geom_boxplot(data=scenario1, mapping=aes(x=as.factor(year), y=total)) +
-  xlab("Year") + ylab("Number of wolves")+
-  facet_wrap(.~as.factor(scenario), labeller = as_labeller(panel_names))#+
-
-ggsave("Outputs/a_composite_model/Scenarios/Figures/Number_of_Wolves_NoImmig.jpg")
-
 #####----- NUMBER OF WOLVES FOR PAPER WITH REDUCED SCENARIOS AND YEARS ----####
 
 #getting only certain years and scenarios
-Nwolves_paper <- NWolves %>% filter(year==11 | year==21 | year==31 | year==41 | year==51)
-
-
-
-Nwolves_paper <-  Nwolves_paper %>% filter(scenario==1 | scenario==2 | scenario==3 | scenario==8 |
-                                             scenario==12 | scenario==14) 
+Nwolves_paper <- NWolves %>% filter(year==1 | year==11 | year==21 | year==31 | year==41 | year==51)
+head(Nwolves_paper)
 #changing levels for scenarios
 #3 first, then 12, 8, 2, 14, 1
-Nwolves_paper$scenario <- factor(Nwolves_paper$scenario , 
-                                 levels = c("1", "14", "2", 
-                                            "8", "12", "3"))
+Nwolves_paper$scenario <- factor(Nwolves_paper$scenario)
+levels(Nwolves_paper$scenario)
 
 #getting quantile of values in year 50
 dim(Nwolves_paper)
 head(Nwolves_paper)
 Nwolves_paper_summary <- Nwolves_paper %>% group_by(scenario, year) %>%  summarise(quantile(total, probs=c(0.025, 0.5, 0.975))) %>% 
-  filter(year == 10 | year==50) %>% filter(scenario == 7)
-print(Nwolves_paper_summary)
-
-panel_names <- c(
-  `1` = "Baseline",
-  `2` = "Transl MSH",
-  `3` = "Transl Olympic",
-  `4` = "Inc removals",
-  `5` = "Harvest 2.5% C",
-  `6` = "Harvest 2.5% A",
-  `7` = "Harvest 5% C",
-  `8`= "Harvest 5% A",
-  `9` = "No immig",
-  `10` = "Disease 25% C",
-  `11` = "Disease 25% A",
-  `12` = "Disease 50% C",
-  `13` = "Harvest 50% A",
-  `14` = "Harvest 75% C",
-  `15`= "Harvest 75% A")
+  filter(year == 1 | year==51) #%>% filter(scenario == 7)
+print(Nwolves_paper_summary,n=48)
 
 head(Nwolves_paper)
 
 library(MetBrewer)
+Nwolves_paper_figure <- Nwolves_paper %>% filter(year==11 | year==21 | year==31 | year==41 | year==51)
 
-ggplot(Nwolves_paper, aes(x=as.factor(year), y=total, fill=as.factor(scenario))) + 
+ggplot(Nwolves_paper_figure, aes(x=as.factor(year), y=total, fill=as.factor(scenario))) + 
   geom_boxplot() +
   ylab("Number of wolves")+
   scale_fill_manual(name = "Scenario", 
-                    labels = c("Baseline", "Transl MSH", "Transl Olympic", "Immig 50%",
-                               "No Immig", "Inc Removals", "Inc Removals E WA",
-                               "Disease 25%","Disease 50%","Disease 75%", 
-                               "Harvest 2.5%", "Harvest 5%"),                    
+                    labels = c("Baseline", "Translocation MSH", "Translocation Olympic", "Inc removals", "Inc removals E Wash", "Harvest 2.5%", "Harvest 5%", "50% immigration", "No immigration", "Disease 25%", "Disease 50%", "Disease 75%"),
                     values=met.brewer("Signac", 12))+
   scale_x_discrete(name = "Year", labels=c("11" = "2030", "21" = "2040","31" = "2050",
-                                           "41" = "2060","51" = "2070"))+
+                            "41" = "2060","51" = "2070"))+
   theme(legend.position="bottom")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS6.eps")
-ggsave("Outputs/a_composite_model/Scenarios/Figures/papertwo/Chapter2_Appendix_FigureS6.jpg")
+ggsave("figures/appendix/Figure6_new.jpg", width = 8, height = 5, units="in")
+
+
+#####----- END OF FIGURE CODE ----####
 
 #####----- NUMBER OF WOLVES FOR PAPER WITH BASELINE SCENARIO AND ONLY A FEW YEARS ----####
 
@@ -886,7 +422,7 @@ ggplot(data=NWolves_all, aes(x = as.factor(year), y = total)) +
   ylab("number of wolves")+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, 
-                                   hjust = 1, vjust = 0.5))
+                                      hjust = 1, vjust = 0.5))
 ggsave("Outputs/a_composite_model/Scenarios/Figures/paper/TotalWolves.jpg")
 
 #getting only certain years and scenarios
@@ -1079,7 +615,7 @@ panel_names <- c(
   `15` = "Tran Olympic")
 
 require(ggplot2)
-
+ 
 scenario1 <- subset(NWolves, scenario==1)
 head(scenario1)
 ggplot() + 
@@ -1087,9 +623,9 @@ ggplot() +
   geom_boxplot(outlier.size=-1, data=scenario1, mapping=aes(x=as.factor(year), y=total, fill=region)) +
   xlab("Year") + ylab("Number of wolves")+ ylim(0,500)+
   scale_fill_manual(name = "region", labels = c("Eastern Washington", 
-                                                "Northern Cascades",
-                                                "Southern Cascades & NW Coast"),#+
-                    values=c("gold1","lightblue2","mediumorchid"))+
+                                                  "Northern Cascades",
+                                                  "Southern Cascades & NW Coast"),#+
+          values=c("gold1","lightblue2","mediumorchid"))+
   theme(legend.position="bottom")
 #facet_wrap(.~as.factor(scenario), labeller = as_labeller(panel_names))#+
 
@@ -1105,8 +641,8 @@ ggplot() +
                                                 "Northern Cascades",
                                                 "Southern Cascades & NW Coast"),
                     values=c("gold1","lightblue2","mediumorchid"))+
-  theme(legend.position="bottom")
-
+                    theme(legend.position="bottom")
+                    
 ggsave("Outputs/a_composite_model/Scenarios/Figures/Number_of_Wolves_RR_NoImmig.jpg")
 
 ###### LETS MOVE ON TO NUMBER OCCUPIED SITES BY RECOVERY REGION ######
