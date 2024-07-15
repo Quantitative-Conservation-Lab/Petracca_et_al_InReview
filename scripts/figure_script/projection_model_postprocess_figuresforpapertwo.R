@@ -154,7 +154,7 @@ ggsave("figures/Figure3_new.jpg", width = 6, height = 4, units="in")
 #getting quantiles
 head(p.recovery.time_paper)
 p.recovery.time_paper_summary <- p.recovery.time_paper %>% group_by(scenario,year) %>%  drop_na(total) %>% 
-  summarise(mean(total)) 
+  summarise(median(total)) 
 #getting mean, not median
 print(p.recovery.time_paper_summary, n=150)
 
