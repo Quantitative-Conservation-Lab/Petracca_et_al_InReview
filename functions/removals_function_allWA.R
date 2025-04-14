@@ -1,4 +1,4 @@
-get.removals <- function(n.wolves.all.fxn, removal_rate){
+get.removals.allWA <- function(n.wolves.all.fxn, removal_rate){
   
   #in this function, we are removing wolves by pack across all of WA based on a removal rate
   Nsamples <- dim(n.wolves.all.fxn)[1]
