@@ -103,18 +103,18 @@ for(sim in 1:nSims){
     phiB.proj[,3,t] <- plogis(rnorm(nSamples, mean=int.surv2[,2], sd = sigma.period)) 
   } 
   
-  if(analysis=="no immigration"){ #this is allowing immigration to start in year 4 (2023)
+  if(analysis=="no immigration"){ #this is allowing immigration to start in year 8 (2027)
     #immigration will turn to 0
     lambda.immig.mat <- matrix(NA, nrow=51, ncol=nSamples)
-    lambda.immig.mat[1:3,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
-    lambda.immig.mat[4:51,] <- 0 
+    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[8:51,] <- 0 
   }
   
   if(analysis=="half immigration"){
-    #immigration will turn to 1/2 of current immigration in 2023
+    #immigration will turn to 1/2 of current immigration in 2027
     lambda.immig.mat <- matrix(NA, nrow=51, ncol=nSamples)
-    lambda.immig.mat[1:3,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
-    lambda.immig.mat[4:51,] <- matrix(lambda.immig*0.5,nrow=48,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[8:51,] <- matrix(lambda.immig*0.5,nrow=48,ncol=nSamples,byrow=TRUE)
   }
   
   if(analysis=="disease"){
