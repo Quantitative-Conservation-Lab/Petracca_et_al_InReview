@@ -106,15 +106,15 @@ for(sim in 1:nSims){
   if(analysis=="no immigration"){ #this is allowing immigration to start in year 8 (2027)
     #immigration will turn to 0
     lambda.immig.mat <- matrix(NA, nrow=51, ncol=nSamples)
-    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=7,ncol=nSamples,byrow=TRUE)
     lambda.immig.mat[8:51,] <- 0 
   }
   
   if(analysis=="half immigration"){
     #immigration will turn to 1/2 of current immigration in 2027
     lambda.immig.mat <- matrix(NA, nrow=51, ncol=nSamples)
-    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=3,ncol=nSamples,byrow=TRUE)
-    lambda.immig.mat[8:51,] <- matrix(lambda.immig*0.5,nrow=48,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[1:7,] <- matrix(lambda.immig,nrow=7,ncol=nSamples,byrow=TRUE)
+    lambda.immig.mat[8:51,] <- matrix(lambda.immig*0.5,nrow=44,ncol=nSamples,byrow=TRUE)
   }
   
   if(analysis=="disease"){
