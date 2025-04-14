@@ -87,7 +87,7 @@ for(sim in 1:nSims){
   
   #reading in arrays needed for projection (incl. first year data)
   load("data/Projection_Inputs.RData")   
-  removal_rate <- c(rep(0.03510213, 3), rep(0.08530878,48))
+  removal_rate <- c(rep(0.04600801, 7), rep(0.08530878,44)) #increased removals start in Dec 2027
   
   set.seed(37585+sim)
   

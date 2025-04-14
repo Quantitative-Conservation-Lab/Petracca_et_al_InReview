@@ -26,6 +26,7 @@ proj <- 51 #100 #years of projection
 nSims <- 100 #number of simulations per sample from the posterior
 nSamples <- 500 #number of samples from the posterior,  this has to be set to 500 based on input files
 S <- 224 #territories
+removal_rate <- 0.04600801 #annual rate based on removals 2012-2020
 
 #setting up for new.guys array
 newguys <- array(0, dim=c(nSamples,2,proj,S))
@@ -50,7 +51,6 @@ for(sim in 1:nSims){
   
   #reading in arrays needed for projection (incl. first year data)
   load("data/Projection_Inputs.RData")   
-  
   set.seed(37585+sim)
   
   #the i loop is inherent here

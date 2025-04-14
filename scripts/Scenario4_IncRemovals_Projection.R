@@ -87,7 +87,7 @@ for(sim in 1:nSims){
   
   #reading in arrays needed for projection (incl. first year data)
   load("data/Projection_Inputs.RData")   
-  removal_rate <- c(rep(0.03510213, 3), rep(0.08530878,48))
+  removal_rate <- c(rep(0.04600801, 7), rep(0.08530878,44)) #increased removals start in Dec 2027
   
   set.seed(37585+sim)
   
@@ -325,9 +325,16 @@ for(sim in 1:nSims){
     #n.wolves.EWash.fxn <- N.proj[,,1,t+1,EWash] #just getting nSamples x 3 x site
     
     #call function
-    n.postremove.WA <- get.removals(n.wolves.all.fxn, removal_rate[t+1])
     
-    N.proj[,,1,t+1,] <- n.postremove.WA
+    if(t<7){
+      n.postremove.EWash <- get.removals(n.wolves.EWash.fxn, removal_rate[t+1])
+      
+      N.proj[,,1,t+1,EWash] <- n.postremove.EWash}
+    
+    if(t>=7){
+      n.postremove.WA <- get.removals.allWA(n.wolves.all.fxn, removal_rate[t+1])
+      
+      N.proj[,,1,t+1,] <- n.postremove.WA}
     
     ##### TRANSLOCATION FUNCTION GOES HERE -----##### 
     
