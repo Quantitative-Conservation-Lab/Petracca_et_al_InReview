@@ -316,16 +316,14 @@ for(sim in 1:nSims){
     
     #THIS IS WHERE REMOVALS HAPPEN; HAPPEN ANNUALLY IN TIME PERIOD 1 (DECEMBER)
     
-    n.wolves.all.fxn <- array(NA,dim = c(nSamples,3,224))
     n.wolves.EWash.fxn <- array(NA,dim = c(nSamples,3,length(EWash)))
     
     #N.proj numbers should be going into the removal function because only sites with 2+ adults can get removed anyway
     
-    n.wolves.all.fxn <- N.proj[,,1,t+1,] #just getting nSamples x 3 x site
     n.wolves.EWash.fxn <- N.proj[,,1,t+1,EWash] #just getting nSamples x 3 x site
     
     #call function
-    n.postremove.EWash <- get.removals(n.wolves.all.fxn, n.wolves.EWash.fxn, removal_rate[t+1])
+    n.postremove.EWash <- get.removals(n.wolves.EWash.fxn, removal_rate[t+1])
     
     N.proj[,,1,t+1,EWash] <- n.postremove.EWash
     
