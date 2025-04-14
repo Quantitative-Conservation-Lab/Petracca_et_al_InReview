@@ -88,7 +88,7 @@ lambda.mean <- lambda.upper <- lambda.lower <- p.quasiext <- p.recovery <- numer
 for(sim in 1:nSims){
   
   #reading in arrays needed for projection (incl. first year data)
-  load("Projection_Inputs.RData")   
+  load("data/Projection_Inputs.RData")   
   
   set.seed(37585+sim)
   
