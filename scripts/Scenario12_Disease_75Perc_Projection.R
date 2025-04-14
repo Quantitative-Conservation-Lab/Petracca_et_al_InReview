@@ -330,7 +330,7 @@ for(sim in 1:nSims){
     
     #adjust t to whenever translocation will occur
     
-    if(analysis=="translocation" && t==5){
+    if(analysis=="translocation" && t==7){
       
       n.wolves.transl.fxn <- array(NA,dim = c(nSamples,3,224))
       n.wolves.transl.fxn <- N.proj[,,1,t+1,] #just getting nSamples x 3 x site
